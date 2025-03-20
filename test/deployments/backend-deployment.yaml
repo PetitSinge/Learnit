@@ -20,7 +20,7 @@ spec:
         fsGroup: 1000680000
       containers:
       - name: backend
-        image: petitsinge/learnit-backend:latest
+        image: image-registry.openshift-image-registry.svc:5000/learnit/learnit-backend:latest
         imagePullPolicy: Always
         ports:
         - containerPort: 8080
