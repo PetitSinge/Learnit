@@ -25,6 +25,10 @@ spec:
       labels:
         app: postgres
     spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000680000
+        fsGroup: 1000680000
       containers:
       - name: postgres
         image: postgres:16-alpine
@@ -56,6 +60,11 @@ spec:
           requests:
             memory: "512Mi"
             cpu: "500m"
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+            - ALL
       volumes:
       - name: postgres-storage
         persistentVolumeClaim:

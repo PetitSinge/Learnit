@@ -1,76 +1,60 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: backend
+  name: postgres
   labels:
-    app: backend
+    app: postgres
 spec:
-  replicas: 2
+  replicas: 1
   selector:
     matchLabels:
-      app: backend
+      app: postgres
   template:
     metadata:
       labels:
-        app: backend
+        app: postgres
     spec:
       securityContext:
         runAsNonRoot: true
         runAsUser: 1000680000
         fsGroup: 1000680000
       containers:
-      - name: backend
-        image: petitsinge/learnit-backend:latest
-        imagePullPolicy: Always
+      - name: postgres
+        image: postgres:16-alpine
         ports:
-        - containerPort: 8080
+        - containerPort: 5432
         env:
-        - name: DB_HOST
-          value: "postgres-service"
-        - name: DB_PORT
-          value: "5432"
-        - name: DB_NAME
+        - name: POSTGRES_DB
           valueFrom:
             secretKeyRef:
               name: db-secret
               key: db-name
-        - name: DB_USER
+        - name: POSTGRES_USER
           valueFrom:
             secretKeyRef:
               name: db-secret
               key: db-user
-        - name: DB_PASSWORD
+        - name: POSTGRES_PASSWORD
           valueFrom:
             secretKeyRef:
               name: db-secret
               key: db-password
-        - name: JWT_SECRET
-          valueFrom:
-            secretKeyRef:
-              name: jwt-secret
-              key: jwt-secret
+        volumeMounts:
+        - name: postgres-storage
+          mountPath: /var/lib/postgresql/data
         resources:
           limits:
+            memory: "1Gi"
+            cpu: "1000m"
+          requests:
             memory: "512Mi"
             cpu: "500m"
-          requests:
-            memory: "256Mi"
-            cpu: "250m"
         securityContext:
           allowPrivilegeEscalation: false
           capabilities:
             drop:
             - ALL
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: backend-service
-spec:
-  selector:
-    app: backend
-  ports:
-    - protocol: TCP
-      port: 8080
-      targetPort: 8080
-  type: ClusterIP 
+      volumes:
+      - name: postgres-storage
+        persistentVolumeClaim:
+          claimName: postgres-pvc 
